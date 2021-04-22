@@ -1,25 +1,72 @@
 import pygame
 from board import Board
-from constants import WHITE, BLACK
+from constants import WHITE, BLACK, RED,SQUARE_SIZE,PIECE_SIZE
 
 
 class Checkers:
     def __init__(self, window):
-        self.board = Board()
-        self.board.init_board(window)
+        # self.board.init_board(window)
+        self._init()
         self.window = window
+
+    def _init(self):
+        self.selected_piece = None
+        self.board = Board()
         self.turn = WHITE
-        self.selected = None
-        self.moves = {} #valid moves
+        self.possible_moves = {} #valid moves available
 
     def update(self):
         self.board.draw_board(self.window)
-        self.board.draw_pieces(self.window)
+        self.draw_possible_moves(self.possible_moves)
+        # self.board.draw_pieces(self.window)
         pygame.display.update()
 
-    def move(self, row, column):
-        pass #TODO
-
     def select(self, row, column):
-            pass #TODO
+        if self.selected_piece:
+            move = self._move(row, column)
+            if not move:
+                self.selected_piece = None
+                self.select(row, column)
+
+        piece = self.board.get_piece(row, column)
+        if piece != 0 and piece.color == self.turn:
+            self.selected_piece = piece
+            self.possible_moves = self.board.get_possible_moves(piece)
+            return True
+
+        return False
+
+    def _move(self, row, column):
+
+        dest_piece = self.board.get_piece(row, column)
+
+        if self.selected_piece and dest_piece == 0 and (row, column) in self.possible_moves:
+            self.board.move( row, column,self.selected_piece,)
+            skipped = self.possible_moves[(row, column)]
+
+            #SOMEHOW NEED TO IMPLEMENT A END OF GAME HER IF A PLAYER HAS NO POSSIBLE MOVES
+            if skipped:
+                self.board.remove(skipped)
+            self.change_turn()
+        else:
+            return False
+        return True
+
+    def change_turn(self):
+        self.possible_moves = {}
+        if self.turn == WHITE:
+            self.turn = BLACK
+        else:
+            self.turn = WHITE
+
+    def draw_possible_moves(self,possible_moves):
+        for move in possible_moves:
+            row,col = move
+            pygame.draw.circle(self.window, RED,(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
+
+    def winner(self):
+        return self.board.winner()
+
+    def restart(self):
+        self._init()
 
