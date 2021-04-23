@@ -5,7 +5,6 @@ from constants import WHITE, BLACK, RED,SQUARE_SIZE,PIECE_SIZE
 
 class Checkers:
     def __init__(self, window):
-        # self.board.init_board(window)
         self._init()
         self.window = window
 
@@ -18,23 +17,49 @@ class Checkers:
     def update(self):
         self.board.draw_board(self.window)
         self.draw_possible_moves(self.possible_moves)
-        # self.board.draw_pieces(self.window)
         pygame.display.update()
 
+    def find_jump(self):
+        jumps = []
+        all_pieces = self.board.get_all_pieces(self.turn)
+        for piece in all_pieces:
+            valid_moves = self.board.get_possible_moves(piece)
+            for move,skip in valid_moves.items():
+                if skip:
+                    jumps.append(piece)
+        return jumps
+
+
     def select(self, row, column):
+        jumps =self.find_jump()
         if self.selected_piece:
             move = self._move(row, column)
             if not move:
                 self.selected_piece = None
                 self.select(row, column)
+        if jumps:
+            for piece in jumps:
+                if row != piece.row or column != piece.column:
+                    continue
 
-        piece = self.board.get_piece(row, column)
-        if piece != 0 and piece.color == self.turn:
-            self.selected_piece = piece
-            self.possible_moves = self.board.get_possible_moves(piece)
-            return True
+                else:
+                    piece = self.board.get_piece(row, column)
+                    if piece != 0 and piece.color == self.turn:
+                        self.selected_piece = piece
+                        self.possible_moves = self.board.get_possible_moves(piece)
+                        return True
 
-        return False
+        else:
+
+            piece = self.board.get_piece(row, column)
+            if piece != 0 and piece.color == self.turn:
+                self.selected_piece = piece
+                self.possible_moves = self.board.get_possible_moves(piece)
+                return True
+
+            return False
+
+
 
     def _move(self, row, column):
 
@@ -43,8 +68,6 @@ class Checkers:
         if self.selected_piece and dest_piece == 0 and (row, column) in self.possible_moves:
             self.board.move( row, column,self.selected_piece,)
             skipped = self.possible_moves[(row, column)]
-
-            #SOMEHOW NEED TO IMPLEMENT A END OF GAME HER IF A PLAYER HAS NO POSSIBLE MOVES
             if skipped:
                 self.board.remove(skipped)
             self.change_turn()
@@ -59,14 +82,22 @@ class Checkers:
         else:
             self.turn = WHITE
 
+
     def draw_possible_moves(self,possible_moves):
         for move in possible_moves:
             row,col = move
             pygame.draw.circle(self.window, RED,(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
 
+
     def winner(self):
         return self.board.winner()
+
 
     def restart(self):
         self._init()
 
+    def get_board(self):
+        return self.board
+    def turn_AI(self,board):
+        self.board = board
+        self.change_turn()

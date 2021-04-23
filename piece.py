@@ -21,7 +21,7 @@ class Piece:
         self.y = self.row * SQUARE_SIZE + SQUARE_SIZE // 2
 
     def draw_piece(self, window):
-        pygame.draw.circle(window, BLACK, (self.x, self.y), PIECE_SIZE // 2 + 3)
+        pygame.draw.circle(window, WHITE, (self.x, self.y), PIECE_SIZE // 2 + 3)
         pygame.draw.circle(window, self.color, (self.x, self.y), PIECE_SIZE // 2)
         if self.is_king:
             window.blit(CROWN, (self.x - CROWN.get_width() // 2, self.y - CROWN.get_height() // 2))
